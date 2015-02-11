@@ -18,7 +18,19 @@
  */
 (function($, window) {
     'use strict';
-    var app = {
+    var App = function($, rootElement) {
+        this.$ = $;
+        this.targetInputs = $(rootElement).find('input[tabindex]');
+        var maxTabIndex = 0;
+        this.targetInputs.each(function() {
+            var index = parseInt($(this).attr('tabindex'));
+            if (maxTabIndex < index) {
+                maxTabIndex = index;
+            }
+        });
+        this.maxTabIndex = maxTabIndex;
+    };
+    App.prototype = {
         'isFocusable': function($input) {
             return $input.is(":visible") &&
                 $input.is(":enabled") &&
@@ -41,28 +53,31 @@
                 return this.findNextInput(nextInput);
             }
         },
-        'findeNextInputTabIndexFrom': function(input) {
+        'findeNextInputTabIndexFrom': function(input, shift) {
             var index = $(input).attr('next-tabindex');
 
-            if (typeof index !== 'undefined') {
+            if (typeof index !== 'undefined' && !shift) {
                 return $('#tabindex').find("input[tabindex='" + index + "']");
             }
             index = $(input).attr('tabindex');
-            return this.findNextInputTabIndex(index);
+            return this.findNextInputTabIndex(index, shift);
         },
-        'findNextInputTabIndex': function(currentIndexNum) {
+        'findNextInputTabIndex': function(currentIndexNum, shift) {
             if (typeof currentIndexNum === 'undefined') {
                 return;
             }
-            var nextNum = parseInt(currentIndexNum) + 1;
+            var nextNum = shift ? parseInt(currentIndexNum) - 1 : parseInt(currentIndexNum) + 1;
+            if (nextNum < 1) {
+                nextNum = this.maxTabIndex;
+            }
             var nextInput = $('#tabindex').find("input[tabindex='" + nextNum + "']");
             if (this.isFocusable(nextInput)) {
                 return nextInput;
             } else {
-                return this.findNextInputTabIndex(nextNum);
+                return this.findNextInputTabIndex(nextNum, shift);
             }
         }
-    };
+    }
 
     $(function() {
         $('#next-input input').keydown(function(e) {
@@ -70,6 +85,7 @@
             var elements = this;
             var c = e.which ? e.which : e.keyCode;
             if (c == 13) {
+                var app = new App($, $('#tabindex'));
                 var nextInput = app.findNextInput(elements);
                 if (typeof nextInput === 'undefined') {
                     return;
@@ -83,7 +99,8 @@
             var elements = this;
             var c = e.which ? e.which : e.keyCode;
             if (c == 13 || c == 9) {
-                var nextInput = app.findeNextInputTabIndexFrom(elements);
+                var app = new App($, $('#tabindex'));
+                var nextInput = app.findeNextInputTabIndexFrom(elements, e.shiftKey);
                 if (typeof nextInput === 'undefined') {
                     return;
                 }
@@ -92,5 +109,5 @@
             };
         });
     });
-    window.app = app;
+    window.App = App;
 })(jQuery, window);
