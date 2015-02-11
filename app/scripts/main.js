@@ -28,8 +28,7 @@
                 !$input.prop("readonly");
         },
         'findNextInput': function(current) {
-            if (typeof current === 'undefined', this.count == 100) {
-                this.count = 0;
+            if (typeof current === 'undefined') {
                 return;
             }
             var nextInputName = $(current).attr('next-input-name');
@@ -41,6 +40,27 @@
             } else {
                 return this.findNextInput(nextInput);
             }
+        },
+        'findeNextInputTabIndexFrom': function(input) {
+            var index = $(input).attr('next-tabindex');
+
+            if (typeof index !== 'undefined') {
+                return $('#tabindex').find("input[tabindex='" + index + "']");
+            }
+            index = $(input).attr('tabindex');
+            return this.findNextInputTabIndex(index);
+        },
+        'findNextInputTabIndex': function(currentIndexNum) {
+            if (typeof currentIndexNum === 'undefined') {
+                return;
+            }
+            var nextNum = parseInt(currentIndexNum) + 1;
+            var nextInput = $('#tabindex').find("input[tabindex='" + nextNum + "']");
+            if (this.isFocusable(nextInput)) {
+                return nextInput;
+            } else {
+                return this.findNextInputTabIndex(nextNum);
+            }
         }
     };
 
@@ -51,6 +71,19 @@
             var c = e.which ? e.which : e.keyCode;
             if (c == 13) {
                 var nextInput = app.findNextInput(elements);
+                if (typeof nextInput === 'undefined') {
+                    return;
+                }
+                nextInput.focus();
+                e.preventDefault();;
+            };
+        });
+        $('#tabindex input').keydown(function(e) {
+            console.log(e.keyCode);
+            var elements = this;
+            var c = e.which ? e.which : e.keyCode;
+            if (c == 13 || c == 9) {
+                var nextInput = app.findeNextInputTabIndexFrom(elements);
                 if (typeof nextInput === 'undefined') {
                     return;
                 }
