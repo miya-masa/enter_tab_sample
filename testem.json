@@ -1,0 +1,8 @@
+{
+  "framework" : "jasmine",
+  "src_files": [
+    "https://code.jquery.com/jquery-1.11.2.js",
+    "app/scripts/**/*.js",
+    "spec/**/*.js"
+  ]
+}

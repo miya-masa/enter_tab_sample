@@ -16,35 +16,48 @@
  *  limitations under the License
  *
  */
-(function () {
-  'use strict';
+(function($, window) {
+    'use strict';
+    var app = {
+        'isFocusable': function($input) {
+            return $input.is(":visible") &&
+                $input.is(":enabled") &&
+                $input.css("visibility") !== "hidden" &&
+                $input.attr("type") != "hidden" && // for IE bug ?
+                $input.attr("tabindex") !== "-1" &&
+                !$input.prop("readonly");
+        },
+        'findNextInput': function(current) {
+            if (typeof current === 'undefined', this.count == 100) {
+                this.count = 0;
+                return;
+            }
+            var nextInputName = $(current).attr('next-input-name');
+            var nextInput = $('#next-input').find("input[name='" + nextInputName + "']");
+            if (typeof nextInput === 'undefined' || nextInput.length == 0) {
+                return;
+            } else if (this.isFocusable(nextInput)) {
+                return nextInput;
+            } else {
+                return this.findNextInput(nextInput);
+            }
+        }
+    };
 
-  var querySelector = document.querySelector.bind(document);
-
-  var navdrawerContainer = querySelector('.navdrawer-container');
-  var body = document.body;
-  var appbarElement = querySelector('.app-bar');
-  var menuBtn = querySelector('.menu');
-  var main = querySelector('main');
-
-  function closeMenu() {
-    body.classList.remove('open');
-    appbarElement.classList.remove('open');
-    navdrawerContainer.classList.remove('open');
-  }
-
-  function toggleMenu() {
-    body.classList.toggle('open');
-    appbarElement.classList.toggle('open');
-    navdrawerContainer.classList.toggle('open');
-    navdrawerContainer.classList.add('opened');
-  }
-
-  main.addEventListener('click', closeMenu);
-  menuBtn.addEventListener('click', toggleMenu);
-  navdrawerContainer.addEventListener('click', function (event) {
-    if (event.target.nodeName === 'A' || event.target.nodeName === 'LI') {
-      closeMenu();
-    }
-  });
-})();
+    $(function() {
+        $('#next-input input').keydown(function(e) {
+            console.log(e.keyCode);
+            var elements = this;
+            var c = e.which ? e.which : e.keyCode;
+            if (c == 13) {
+                var nextInput = app.findNextInput(elements);
+                if (typeof nextInput === 'undefined') {
+                    return;
+                }
+                nextInput.focus();
+                e.preventDefault();;
+            };
+        });
+    });
+    window.app = app;
+})(jQuery, window);
